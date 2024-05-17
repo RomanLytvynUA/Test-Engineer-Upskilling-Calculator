@@ -1,7 +1,7 @@
 function createLabeledSelect(parent, label, options, onDelete, addDelete, idPrefix = "LabeledSelect") {
     const inputGroup = $("<div>").addClass("input-group mb-3").attr({ "id": `${label}${idPrefix}` });
     const span = $("<span>").addClass("input-group-text").text(label);
-    const btn = $("<button>").addClass("btn btn-danger").text("X").on("click", () => onDelete(label));
+    const btn = $("<button>").addClass("btn btn-danger").text("X").on("click", () => onDelete(inputGroup[0], label));
 
     inputGroup.append(span[0]);
     createSelect(inputGroup[0], options, false, "", true);
@@ -56,7 +56,7 @@ function createSelectedOption(parent, label, values, onDelete, addDelete = true,
     const btn = $("<button>").attr({
         "class": "btn btn-danger",
         "style": "border-bottom-right-radius: 0;",
-    }).on("click", () => onDelete(label));
+    }).on("click", () => onDelete(div, label));
     btn.html("X")
 
     const card = $("<div>").addClass("card").attr({

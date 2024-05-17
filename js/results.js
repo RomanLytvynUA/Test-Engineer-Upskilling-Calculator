@@ -60,6 +60,7 @@ function collectTrainings() {
 
 function createTable(trainingsData) {
     duration = 0
+
     const tb = $('#resultsTableBody');
     tb.find('tr:not(:last-child)').remove();
     $.each(trainingsData, function (i, training) {
