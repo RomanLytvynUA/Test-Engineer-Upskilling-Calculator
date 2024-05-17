@@ -5,9 +5,11 @@ import re
 import warnings
 
 warnings.simplefilter(action='ignore', category=UserWarning)
-
 tables = ['Base Roles', 'Competency template', 'Tools\\Frameworks']
-# tables = ['Competency template']
+
+# Uncomment to use the example file
+# file = openpyxl.load_workbook("example.xlsx") 
+
 file = openpyxl.load_workbook("file.xlsx")
 sh = file.worksheets[0]
 trainings_sh = file["Trainings"]
