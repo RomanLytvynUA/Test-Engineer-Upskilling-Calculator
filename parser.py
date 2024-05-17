@@ -9,7 +9,7 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 tables = ['Base Roles', 'Competency template', 'Tools\\Frameworks']
 # tables = ['Competency template']
 file = openpyxl.load_workbook("file.xlsx")
-sh = file.active
+sh = file.worksheets[0]
 trainings_sh = file["Trainings"]
 
 
@@ -89,7 +89,7 @@ def get_fields(row, col_start=3):
             fields.append(field_value)
     return fields
 
-generate_trainings_json()
+
 for table in tables:
     file_name = table
 
