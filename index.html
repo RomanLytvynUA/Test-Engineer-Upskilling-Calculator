@@ -105,9 +105,6 @@
         let selectedCompetencyTemplates = [];
         let selectedTools = [];
 
-        let competencyTemplateOptions = [];
-        let toolsOptions = [];
-
         // All logic has to be in async function to await for reading from file
         (async () => {
             await fetchData();
@@ -122,8 +119,6 @@
             populateOptions(roleSelect, Object.keys(baseRoles));
             populateOptions(compTempSelect, competencyTemplateOptions);
             populateOptions(toolsSelect, toolsOptions);
-            // populateCheckBoxes(compTempSelect, competencyTemplate, false);
-            // populateCheckBoxes(toolsSelect, toolsFrameworks, true);
         })();
 
     </script>
