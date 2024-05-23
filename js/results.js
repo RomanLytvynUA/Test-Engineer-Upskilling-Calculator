@@ -66,27 +66,29 @@ function createTable(trainingsData) {
     $.each(trainingsData, function (i, training) {
         trainingData = trainings.find(currentTraining => currentTraining.name == training)
 
+        const newRow = $('<tr>');
+        const checkbox = $('<td>').html('<input class="form-check-input" type=checkbox checked>').addClass("align-middle text-center");
         if (trainingData !== undefined) {
-            const newRow = $('<tr>');
             let duplicatedLink = false;
 
             newRow.append($('<td>').html(`<a target="_blank" href="${trainingData.link}">${trainingData.name}</a>`).addClass("align-middle text-center"));
             newRow.append($('<td>').html(`
-                <div class="progress" role="progressbar" style="width: 100%">
-                <div class="progress-bar ${trainingLevelClasses[trainingData.level]} overflow-visible" style="width: 100%">
-                ${trainingData.level}
-                </div>
-                </div>`
+            <div class="progress" role="progressbar" style="width: 100%">
+            <div class="progress-bar ${trainingLevelClasses[trainingData.level]} overflow-visible" style="width: 100%">
+            ${trainingData.level}
+            </div>
+            </div>`
             ).addClass("align-middle text-center"));
 
             // Look for a tr where training link matches current
             tb.find('tr').each(function (i, tr) {
-                const link = $(this).find('td:first-child a').attr('href');
+                const link = $(this).find('td:nth-child(2) a').attr('href');
                 if (link === trainingData.link) {
+                    const checkboxCell = $(tr).find("td:first-child");
                     const durrationCell = $(tr).find("td:last-child");
                     const currentRowspan = parseInt(durrationCell.attr("rowspan")) || 1; // Get the current rowspan value or default to 1 if it doesn't exist
                     durrationCell.attr("rowspan", currentRowspan + 1); // Increment the rowspan attribute
-
+                    checkboxCell.attr("rowspan", currentRowspan + 1);
                     $(newRow).insertAfter($(tr));
                     duplicatedLink = true;
                     return false;
@@ -95,22 +97,40 @@ function createTable(trainingsData) {
 
             // Only add to the end of the table, add duration cell and increase total duration if link is unique
             if (!duplicatedLink) {
+                newRow.prepend(checkbox);
                 newRow.append($('<td>').text(trainingData.duration).addClass("align-middle text-center"));
 
                 duration += trainingData.duration;
                 tb.prepend(newRow);
+                checkbox.find(`input`).change(function () {
+                    const totalDuration = Number($('#totalCell').text());
+                    const trainingDuration = Number($(this).closest('tr').find("td:last-child").text());
+                    const rowspan = newRow.find('td:first-child')[0].rowSpan;
+                    const rowIndex = tb.children().index(newRow) + 1;
+
+                    if (this.checked) {
+                        for (let i = 0; i < rowspan; i++) {
+                            tb.find(`tr:nth-child(${i + rowIndex})`).css('opacity', '1');
+                        }
+                        $('#totalCell').text(totalDuration + trainingDuration);
+                    } else {
+                        for (let i = 0; i < rowspan; i++) {
+                            tb.find(`tr:nth-child(${i + rowIndex})`).css('opacity', '0.5');
+                        }
+                        $('#totalCell').text(totalDuration - trainingDuration);
+                    }
+                });
             }
+
         } else {
             // Handles the case if there are no training data
-            const newRow = $('<tr>');
-
             newRow.append($('<td>').text(training)).addClass("align-middle text-center");
             newRow.append($('<td>').html(`
-                <div class="progress" role="progressbar" style="width: 100%">
-                <div class="progress-bar ${trainingLevelClasses["Unknown"]} overflow-visible" style="width: 100%">
-                Unknown
-                </div>
-                </div>`
+            <div class="progress" role="progressbar" style="width: 100%">
+            <div class="progress-bar ${trainingLevelClasses["Unknown"]} overflow-visible" style="width: 100%">
+            Unknown
+            </div>
+            </div>`
             ).addClass("align-middle text-center"));
             newRow.append($('<td>').text("-").addClass("align-middle text-center"));
             tb.prepend(newRow);
