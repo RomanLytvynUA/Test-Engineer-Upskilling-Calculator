@@ -98,28 +98,12 @@ function createTable(trainingsData) {
             // Only add to the end of the table, add duration cell and increase total duration if link is unique
             if (!duplicatedLink) {
                 newRow.prepend(checkbox);
+                setUpCheckBox(checkbox, tb, newRow)
                 newRow.append($('<td>').text(trainingData.duration).addClass("align-middle text-center"));
+
 
                 duration += trainingData.duration;
                 tb.prepend(newRow);
-                checkbox.find(`input`).change(function () {
-                    const totalDuration = Number($('#totalCell').text());
-                    const trainingDuration = Number($(this).closest('tr').find("td:last-child").text());
-                    const rowspan = newRow.find('td:first-child')[0].rowSpan;
-                    const rowIndex = tb.children().index(newRow) + 1;
-
-                    if (this.checked) {
-                        for (let i = 0; i < rowspan; i++) {
-                            tb.find(`tr:nth-child(${i + rowIndex})`).css('opacity', '1');
-                        }
-                        $('#totalCell').text(totalDuration + trainingDuration);
-                    } else {
-                        for (let i = 0; i < rowspan; i++) {
-                            tb.find(`tr:nth-child(${i + rowIndex})`).css('opacity', '0.5');
-                        }
-                        $('#totalCell').text(totalDuration - trainingDuration);
-                    }
-                });
             }
 
         } else {
@@ -133,9 +117,32 @@ function createTable(trainingsData) {
             </div>`
             ).addClass("align-middle text-center"));
             newRow.append($('<td>').text("-").addClass("align-middle text-center"));
+            newRow.prepend(checkbox);
+            setUpCheckBox(checkbox, tb, newRow)
             tb.prepend(newRow);
         }
     });
 
     return duration;
+}
+
+function setUpCheckBox(checkbox, tb, row) {
+    checkbox.find(`input`).change(function () {
+        const totalDuration = Number($('#totalCell').text());
+        const trainingDuration = Number($(this).closest('tr').find("td:last-child").text());
+        const rowspan = row.find('td:first-child')[0].rowSpan;
+        const rowIndex = tb.children().index(row) + 1;
+
+        if (this.checked) {
+            for (let i = 0; i < rowspan; i++) {
+                tb.find(`tr:nth-child(${i + rowIndex})`).css('opacity', '1');
+            }
+            $('#totalCell').text(isNaN(trainingDuration) ? totalDuration : totalDuration + trainingDuration);
+        } else {
+            for (let i = 0; i < rowspan; i++) {
+                tb.find(`tr:nth-child(${i + rowIndex})`).css('opacity', '0.5');
+            }
+            $('#totalCell').text(isNaN(trainingDuration) ? totalDuration : totalDuration - trainingDuration);
+        }
+    });
 }
