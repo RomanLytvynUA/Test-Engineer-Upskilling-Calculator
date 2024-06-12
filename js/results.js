@@ -58,80 +58,100 @@ function collectTrainings() {
     return collectedTrainings;
 }
 
-function createTable(trainingsData) {
+function createTable(trainingsNames) {
     duration = 0
 
     const tb = $('#resultsTableBody');
     tb.find('tr:not(:last-child)').remove();
-    $.each(trainingsData, function (i, training) {
-        trainingData = trainings.find(currentTraining => currentTraining.name == training)
+    $.each(trainingsNames, function (i, trainingName) {
+        trainingData = trainings.filter(currentTraining => currentTraining.name == trainingName)
+        $.each(trainingData, (i, trainingData) => {
+            const newRow = $('<tr>');
+            const checkbox = $('<td>').html('<input class="form-check-input" type=checkbox checked>').addClass("align-middle text-center");
+            if (trainingData !== undefined) {
+                let duplicatedLink = false;
+                let duplicatedName = false;
 
-        const newRow = $('<tr>');
-        const checkbox = $('<td>').html('<input class="form-check-input" type=checkbox checked>').addClass("align-middle text-center");
-        if (trainingData !== undefined) {
-            let duplicatedLink = false;
+                newRow.append($('<td>').html(`<a target="_blank" href="${trainingData.link}">${trainingData.name}</a>`).addClass("align-middle text-center"));
+                newRow.append($('<td>').html(`
+                <div class="progress" role="progressbar" style="width: 100%">
+                <div class="progress-bar ${trainingLevelClasses[trainingData.level]} overflow-visible" style="width: 100%">
+                ${trainingData.level}
+                </div>
+                </div>`
+                ).addClass("align-middle text-center"));
 
-            newRow.append($('<td>').html(`<a target="_blank" href="${trainingData.link}">${trainingData.name}</a>`).addClass("align-middle text-center"));
-            newRow.append($('<td>').html(`
-            <div class="progress" role="progressbar" style="width: 100%">
-            <div class="progress-bar ${trainingLevelClasses[trainingData.level]} overflow-visible" style="width: 100%">
-            ${trainingData.level}
-            </div>
-            </div>`
-            ).addClass("align-middle text-center"));
+                // Look for a tr where training link matches current
+                tb.find('tr').each(function (i, tr) {
+                    const link = $(this).find('td:nth-child(2) a').attr('href');
+                    if (link === trainingData.link) {
+                        const checkboxCell = $(tr).find("td:first-child");
+                        const durrationCell = $(tr).find("td:last-child");
+                        const currentRowspan = parseInt(durrationCell.attr("rowspan")) || 1; // Get the current rowspan value or default to 1 if it doesn't exist
+                        durrationCell.attr("rowspan", currentRowspan + 1); // Increment the rowspan attribute
+                        checkboxCell.attr("rowspan", currentRowspan + 1);
+                        $(newRow).insertAfter($(tr));
+                        duplicatedLink = true;
+                        return;
+                    }
+                });
 
-            // Look for a tr where training link matches current
-            tb.find('tr').each(function (i, tr) {
-                const link = $(this).find('td:nth-child(2) a').attr('href');
-                if (link === trainingData.link) {
-                    const checkboxCell = $(tr).find("td:first-child");
-                    const durrationCell = $(tr).find("td:last-child");
-                    const currentRowspan = parseInt(durrationCell.attr("rowspan")) || 1; // Get the current rowspan value or default to 1 if it doesn't exist
-                    durrationCell.attr("rowspan", currentRowspan + 1); // Increment the rowspan attribute
-                    checkboxCell.attr("rowspan", currentRowspan + 1);
-                    $(newRow).insertAfter($(tr));
-                    duplicatedLink = true;
-                    return false;
+                // Look for a tr where training name matches current
+                tb.find('tr').each(function (i, tr) {
+                    const name = $(this).find('td:nth-child(2)').text();
+                    if (name === trainingData.name) {
+                        newRow.prepend(checkbox);
+                        setUpCheckBox(checkbox, tb, newRow, false)
+                        $(newRow).insertAfter($(tr));
+                        newRow.append($('<td>').text(trainingData.duration).addClass("align-middle text-center"));
+
+                        duplicatedName = true;
+                        return;
+                    }
+                });
+
+                // Only add to the end of the table, add duration cell and increase total duration if link and name are unique
+                if (!duplicatedLink && !duplicatedName) {
+                    newRow.prepend(checkbox);
+                    setUpCheckBox(checkbox, tb, newRow)
+                    newRow.append($('<td>').text(trainingData.duration).addClass("align-middle text-center"));
+
+                    duration += trainingData.duration;
+                    tb.prepend(newRow);
                 }
-            });
 
-            // Only add to the end of the table, add duration cell and increase total duration if link is unique
-            if (!duplicatedLink) {
-                newRow.prepend(checkbox);
-                setUpCheckBox(checkbox, tb, newRow)
-                newRow.append($('<td>').text(trainingData.duration).addClass("align-middle text-center"));
-
-
-                duration += trainingData.duration;
-                tb.prepend(newRow);
-            }
-
-        } else {
-            // Handles the case if there are no training data
-            newRow.append($('<td>').text(training)).addClass("align-middle text-center");
-            newRow.append($('<td>').html(`
+            } else {
+                // Handles the case if there are no training data
+                newRow.append($('<td>').text(trainingName)).addClass("align-middle text-center");
+                newRow.append($('<td>').html(`
             <div class="progress" role="progressbar" style="width: 100%">
             <div class="progress-bar ${trainingLevelClasses["Unknown"]} overflow-visible" style="width: 100%">
             Unknown
             </div>
             </div>`
-            ).addClass("align-middle text-center"));
-            newRow.append($('<td>').text("-").addClass("align-middle text-center"));
-            newRow.prepend(checkbox);
-            setUpCheckBox(checkbox, tb, newRow)
-            tb.prepend(newRow);
-        }
+                ).addClass("align-middle text-center"));
+                newRow.append($('<td>').text("-").addClass("align-middle text-center"));
+                newRow.prepend(checkbox);
+                setUpCheckBox(checkbox, tb, newRow)
+                tb.prepend(newRow);
+            }
+        })
     });
 
     return duration;
 }
 
-function setUpCheckBox(checkbox, tb, row) {
-    checkbox.find(`input`).change(function () {
+function setUpCheckBox(checkboxCell, tb, row, checked = true) {
+    if (!checked) {
+        checkboxCell.find(`input`).attr("checked", false);
+        row.css('opacity', '0.5');
+    }
+    checkboxCell.find(`input`).change(function () {
         const totalDuration = Number($('#totalCell').text());
         const trainingDuration = Number($(this).closest('tr').find("td:last-child").text());
         const rowspan = row.find('td:first-child')[0].rowSpan;
         const rowIndex = tb.children().index(row) + 1;
+
 
         if (this.checked) {
             for (let i = 0; i < rowspan; i++) {
